@@ -1,18 +1,33 @@
+var LOAD_NUM = 10;
 new Vue({
     el: '#app',
     data: {
         total: 0,
         items: [],
         cart: [],
+        results: [],
         searchbar: 'anime',
         last_search: '',
         loading: false,
         price: 9.99,
     },
     mounted() {
-      this.onSubmit();  
+        this.onSubmit(); 
+      
+        var vueInstance = this;
+        var elem = document.getElementById('product-list-bottom');
+        var watcher = scrollMonitor.create(elem);
+        watcher.enterViewport(function(){
+            vueInstance.appendItems();
+        });
     },
     methods:{
+        appendItems(){
+            if(this.items.length < this.results.length){
+                var append = this.results.slice(this.items.length, this.items.length + LOAD_NUM);
+                this.items = this.items.concat(append);
+            }
+        },
         addItem(index){
             var item = this.items[index];
             var cart_index = this.cart.findIndex(x=>x.id == item.id);
@@ -25,11 +40,11 @@ new Vue({
             }else{
                 this.cart[cart_index].qty++ 
             }
-            this.total += item.price;
+            this.total += this.price;
         },
         inc(item){
             item.qty++;
-            this.total += item.price;
+            this.total += this.price;
         },
         dec(item){
             if(item.qty-1 == 0){
@@ -38,7 +53,7 @@ new Vue({
             }else{
                 item.qty--;
             }
-            this.total -= item.price;
+            this.total -= this.price;
         },
         onSubmit(){
             this.items = [];
@@ -46,7 +61,8 @@ new Vue({
             this.$http.get('/search/'.concat(this.searchbar)).then(
                 (res)=>{
                     this.last_search = this.searchbar;
-                    this.items = res.data;
+                    this.results = res.data;
+                    this.appendItems();
                     this.loading = false;
                 }
             );
@@ -54,7 +70,7 @@ new Vue({
     },
     filters:{
         currency(price){
-            return '$'+price.toFixed(2);
+            return '$'+price;
         }
     }
 });
