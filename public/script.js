@@ -21,6 +21,11 @@ new Vue({
             vueInstance.appendItems();
         });
     },
+    computed:{
+        noMoreItems(){
+            return this.results.length === this.items.length && this.results.length > 0;
+        },
+    },
     methods:{
         appendItems(){
             if(this.items.length < this.results.length){
@@ -56,6 +61,9 @@ new Vue({
             this.total -= this.price;
         },
         onSubmit(){
+            if(!this.searchbar.length){
+                return;
+            }
             this.items = [];
             this.loading = true;
             this.$http.get('/search/'.concat(this.searchbar)).then(
